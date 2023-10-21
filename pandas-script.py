@@ -1,27 +1,48 @@
 import pandas as pd
+import time
+from memory_profiler import memory_usage
 
-# dataset url
-url = "https://raw.githubusercontent.com/fivethirtyeight/data/master/fifa/fifa_countries_audience.csv"
+def calculate() -> pd.DataFrame:
+    # Load the CSV data into a pandas DataFrame
+    return pd.read_csv("pandas_script/data/data.csv")
 
-# create pandas dataframe from url
-df = pd.read_csv(url)
+def descriptive_statistics(df: pd.DataFrame) -> pd.DataFrame:
+    result_data = {}
+    
+    for col_name in df.columns:
+        col = df[col_name]
+        
+        if col.dtype == 'float64' or col.dtype == 'int64':
+            mean_val = col.mean()
+            result_data[f'{col_name}_mean'] = [mean_val]
+            
+            min_val = col.min()
+            result_data[f'{col_name}_min'] = [min_val]
+            
+            max_val = col.max()
+            result_data[f'{col_name}_max'] = [max_val]
+            
+            count_val = len(col)
+            result_data[f'{col_name}_count'] = [count_val]
+            
+    return pd.DataFrame(result_data)
 
-# get the top 5 countries with the greatest mean population share
-mean_population_share = df.groupby('country')['population_share'].mean().sort_values(ascending=False)
-print('MEAN POPULATION SHARE TOP 5:')
-print(mean_population_share.head())
-
-# get the top 5 countries with the greatest tv audience share
-tv_audience = df.groupby('country')['tv_audience_share'].mean().sort_values(ascending=False)
-print('TV AUDIENCE TOP 5:')
-print(tv_audience.head())
-
-# get the top 5 countries with the greatest gdp_weighted share
-gdp_weighted = df.groupby('country')['gdp_weighted_share'].mean().sort_values(ascending=False)
-print('GDP WEIGHTED TOP 5:')
-print(gdp_weighted.head())
-
-# get the number of countries per each confederation
-confederation_counts = df.groupby('confederation').size()
-print('NUMBER OF COUNTRIES IN EACH CONFEDERATION:')
-print(confederation_counts)
+if __name__ == "__main__":
+    df = calculate()
+    print("Original DataFrame:")
+    print(df)
+    
+    # Calculate runtime
+    start_time = time.time()
+    try:
+        stats = descriptive_statistics(df)
+        print("\nDescriptive Statistics:")
+        print(stats)
+    except Exception as e:
+        print(f"Error calculating statistics: {e}")
+    end_time = time.time()
+    print(f"\nRuntime: {end_time - start_time:.6f} seconds")
+    
+    # Calculate memory usage
+    mem_usage = memory_usage((descriptive_statistics, (df,)))
+    print(f"Memory Usage: {max(mem_usage):.6f} MiB")
